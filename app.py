@@ -46,15 +46,15 @@ class Shelf:
     def has_space(self) -> bool:
         return None in self.pallets
 
-    def add_pallet(self, pallet: Europallet) -> Union[None, int]:
+    def add_pallet(self, pallet: Europallet) -> bool:
         if not self.can_accept_category(pallet.category) or not self.has_space():
-            return None
+            return False
 
         for i in range(PALLETS_PER_SHELF):
             if self.pallets[i] is None:
                 self.pallets[i] = pallet
-                return i
-        return None
+                return True
+        return False
 
 
 @dataclass
@@ -92,13 +92,30 @@ class Warehouse:
 
         return horizontal_time + vertical_time
 
+    # Finds the first available position for the pallet
+    def find_first_available_position(self, pallet: Europallet) -> Union[None, Tuple[int, int, int, int]]:
+        position = None
 
-    def place_pallet(self, pallet: Europallet, rack_num: int, bay_num: int, shelf_num: int) -> bool:
+        for rack_num in range(2):
+            for bay_num in range(BAYS_PER_RACK):
+                for shelf_num in range(SHELVES_PER_BAY):
+                    shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
+
+                    if shelf.can_accept_category(pallet.category) and shelf.has_space():
+                        position = (rack_num, bay_num, shelf_num, shelf.pallets.index(None))
+
+        return position
+
+    def place_pallet(self, pallet: Europallet) -> bool:
+        position = self.find_first_available_position(pallet)
+        if position is None:
+            return False
+
+        rack_num, bay_num, shelf_num, shelf_spot = position
+
         shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
-        shelf_spot = shelf.add_pallet(pallet)
-
-        if shelf_spot is None:
-            print("Error placing pallet in shelf")
+        success = shelf.add_pallet(pallet)
+        if not success:
             return False
 
         # Add operation time
@@ -115,7 +132,7 @@ class WarehouseSimulator:
 
     def run_simulation(self):
         for date in self.dates:
-            print(f"Simulating date {date}")
+            print(f"Simulating date {date.strftime('%d/%m/%Y')}")
             for p in self.inputs.iloc():
                 # Skip input logs before the simulation date
                 if pd.to_datetime(p["Date"], format="%d/%m/%Y") < date:
@@ -125,12 +142,7 @@ class WarehouseSimulator:
                     break
 
                 pallet = Europallet(Category(p["Category"]))
-                success = self.warehouse.place_pallet(
-                    pallet,
-                    rack_num=int(str(p["Rack"]).strip()[-1]) - 1,
-                    bay_num=int(p["Bay"]) - 1,
-                    shelf_num=int(p["Shelf"]) - 1,
-                )
+                success = self.warehouse.place_pallet(pallet)
                 if not success:
                     print(f"Failed to place pallet")
 
