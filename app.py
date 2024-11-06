@@ -133,3 +133,28 @@ class WarehouseSimulator:
                 )
                 if not success:
                     print(f"Failed to place pallet")
+
+    def generate_report(self):
+        return {
+            "total_operation_time": self.warehouse.total_operation_time,
+            "average_input_operation_time": self.warehouse.total_operation_time / (len(self.inputs)),
+            # "average_operation_time": self.warehouse.total_operation_time / (len(self.inputs) + len(self.outputs)),
+        }
+
+
+def main():
+    # Initialize simulator
+    simulator = WarehouseSimulator()
+
+    # Run simulation
+    simulator.run_simulation()
+
+    # Generate and print report
+    report = simulator.generate_report()
+    print("\nSimulation Report:")
+    print(f"Total Operation Time: {report['total_operation_time']:.2f} seconds")
+    print(f"Average Operation Time: {report['average_input_operation_time']:.2f} seconds")
+
+
+if __name__ == "__main__":
+    main()
