@@ -78,12 +78,27 @@ class Warehouse:
         self.racks = [Rack(i) for i in range(2)]
         self.total_operation_time = 0
 
-    def calculate_travel_time(self, bay_position: int, shelf_level: int, position: int, has_more: bool) -> float:
-        # Calculate horizontal travel time in seconds
-        one_way_distance = DISTANCE_TO_AREAS + bay_position * RACK_WIDTH + position * PALLET_WIDTH + PALLET_WIDTH / 2
+    def calculate_input_time(self, bay_position: int, shelf_level: int, pallet_position: int) -> float:
+        # Calculate horizontal placement time in seconds (starting from drop-off area)
+        bay_distance = bay_position * RACK_WIDTH
+        rack_distance = pallet_position * PALLET_WIDTH
+        one_way_distance = DISTANCE_TO_AREAS + bay_distance + rack_distance + (PALLET_WIDTH / 2)
+
         # TODO: check if its the last pallet
-        # if has_more:
-        #     distance += DISTANCE_TO_AREAS  # Add distance to pickup/dropoff area
+        horizontal_time = 2 * one_way_distance / FORKLIFT_SPEED
+
+        # Calculate vertical travel time in seconds
+        vertical_time = (shelf_level * SHELF_HEIGHT * 2) / LIFT_SPEED
+
+        return horizontal_time + vertical_time
+
+    def calculate_output_time(self, bay_position: int, shelf_level: int, pallet_position: int) -> float:
+        # Calculate horizontal retrieval time in seconds (starting from pickup area)
+        bay_distance = BAYS_PER_RACK - bay_position - 1 * RACK_WIDTH
+        rack_distance = PALLETS_PER_SHELF - pallet_position - 1 * PALLET_WIDTH
+        one_way_distance = DISTANCE_TO_AREAS + bay_distance + rack_distance + (PALLET_WIDTH / 2)
+
+        # TODO: check if its the last pallet
         horizontal_time = 2 * one_way_distance / FORKLIFT_SPEED
 
         # Calculate vertical travel time in seconds
@@ -95,13 +110,13 @@ class Warehouse:
     def find_first_available_position(self, pallet: Europallet) -> Union[None, Tuple[int, int, int, int]]:
         position = None
 
-        for rack_num in range(2):
-            for bay_num in range(BAYS_PER_RACK):
+        for bay_num in range(BAYS_PER_RACK):
+            for rack_num in range(2):
                 for shelf_num in range(SHELVES_PER_BAY):
                     shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
 
                     if shelf.can_accept_category(pallet.category) and shelf.has_space():
-                        position = (rack_num, bay_num, shelf_num, shelf.pallets.index(None))
+                        return (rack_num, bay_num, shelf_num, shelf.pallets.index(None))
 
         return position
 
@@ -110,7 +125,7 @@ class Warehouse:
         if position is None:
             return False
 
-        rack_num, bay_num, shelf_num, shelf_spot = position
+        rack_num, bay_num, shelf_num, pallet_pos = position
 
         shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
         success = shelf.add_pallet(pallet)
@@ -118,8 +133,22 @@ class Warehouse:
             return False
 
         # Add operation time
-        self.total_operation_time += self.calculate_travel_time(bay_num, shelf_num, shelf_spot, True)
+        self.total_operation_time += self.calculate_input_time(bay_num, shelf_num, pallet_pos)
         return True
+
+    def retrieve_pallet(self, p: Europallet) -> bool:
+        for bay_num in range(BAYS_PER_RACK):
+            for rack_num in range(2):
+                for shelf_num in range(SHELVES_PER_BAY):
+                    shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
+                    for pallet_pos, pallet in enumerate(shelf.pallets):
+                        if pallet and pallet.category == p.category:
+                            # Remove pallet
+                            shelf.pallets[pallet_pos] = None
+                            # Add operation time
+                            self.total_operation_time += self.calculate_output_time(bay_num, shelf_num, pallet_pos)
+                            return True
+        return False
 
 
 class WarehouseSimulator:
@@ -145,11 +174,23 @@ class WarehouseSimulator:
                 if not success:
                     print(f"Failed to place pallet")
 
+            for p in self.outputs.iloc():
+                # Skip output logs before the simulation date
+                if pd.to_datetime(p["Date"], format="%d/%m/%Y") < date:
+                    continue
+                # Stop reading output logs after the simulation date
+                if pd.to_datetime(p["Date"], format="%d/%m/%Y") > date:
+                    break
+
+                pallet = Europallet(Category(p["Category"]))
+                success = self.warehouse.retrieve_pallet(pallet)
+                if not success:
+                    print(f"Failed to retrieve pallet")
+
     def generate_report(self):
         return {
             "total_operation_time": self.warehouse.total_operation_time,
-            "average_input_operation_time": self.warehouse.total_operation_time / (len(self.inputs)),
-            # "average_operation_time": self.warehouse.total_operation_time / (len(self.inputs) + len(self.outputs)),
+            "average_operation_time": self.warehouse.total_operation_time / (len(self.inputs) + len(self.outputs)),
         }
 
 
@@ -164,7 +205,7 @@ def main():
     report = simulator.generate_report()
     print("\nSimulation Report:")
     print(f"Total Operation Time: {report['total_operation_time']:.2f} seconds")
-    print(f"Average Operation Time: {report['average_input_operation_time']:.2f} seconds")
+    print(f"Average Operation Time: {report['average_operation_time']:.2f} seconds")
 
 
 if __name__ == "__main__":
