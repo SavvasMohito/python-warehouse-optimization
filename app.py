@@ -81,14 +81,13 @@ class Warehouse:
     def calculate_travel_time(self, bay_position: int, shelf_level: int, position: int, has_more: bool) -> float:
         # Calculate horizontal travel time in seconds
         one_way_distance = DISTANCE_TO_AREAS + bay_position * RACK_WIDTH + position * PALLET_WIDTH + PALLET_WIDTH / 2
-        print("owd", one_way_distance)
         # TODO: check if its the last pallet
         # if has_more:
         #     distance += DISTANCE_TO_AREAS  # Add distance to pickup/dropoff area
         horizontal_time = 2 * one_way_distance / FORKLIFT_SPEED
 
         # Calculate vertical travel time in seconds
-        vertical_time = (shelf_level * SHELF_HEIGHT) / LIFT_SPEED
+        vertical_time = (shelf_level * SHELF_HEIGHT * 2) / LIFT_SPEED
 
         return horizontal_time + vertical_time
 
