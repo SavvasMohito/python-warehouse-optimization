@@ -161,6 +161,8 @@ class WarehouseSimulator:
 
     def _load_operations(self):
         operations = defaultdict(lambda: {"inputs": [], "outputs": []})
+        # Add pre-existing pallets to satisfy output orders
+        operations["31/8/2023"]["inputs"] = [Europallet(Category.A)]*20 + [Europallet(Category.B)]*20 + [Europallet(Category.C)]*20
 
         for input_output in ["inputs", "outputs"]:
             with open(f"static/warehouse_log_{input_output}.csv") as f:
