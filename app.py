@@ -92,24 +92,6 @@ class Warehouse:
 
         return horizontal_time + vertical_time
 
-    def calculate_output_time(self, bay_position: int, shelf_level: int, pallet_position: int) -> float:
-        # Calculate horizontal retrieval time in seconds (starting from pickup area)
-        bay_distance = BAYS_PER_RACK - bay_position - 1 * RACK_WIDTH
-        rack_distance = PALLETS_PER_SHELF - pallet_position - 1 * PALLET_WIDTH
-        one_way_distance = DISTANCE_TO_AREAS + bay_distance + rack_distance + (PALLET_WIDTH / 2)
-
-        # TODO: check if its the last pallet
-        horizontal_time = 2 * one_way_distance / FORKLIFT_SPEED
-
-        # Calculate vertical travel time in seconds
-        vertical_time = (shelf_level * SHELF_HEIGHT * 2) / LIFT_SPEED
-
-        return horizontal_time + vertical_time
-
-    # Finds the first available position for the pallet
-    def find_first_available_position(self, pallet: Europallet) -> Union[None, Tuple[int, int, int, int]]:
-        position = None
-
     def iter_warehouse_positions(self):
         for bay_num in range(BAYS_PER_RACK):
             for rack_num in range(2):
