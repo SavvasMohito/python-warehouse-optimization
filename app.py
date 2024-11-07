@@ -1,7 +1,6 @@
 import csv
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Tuple, Union
 
@@ -163,26 +162,19 @@ class WarehouseSimulator:
     def _load_operations(self):
         operations = defaultdict(lambda: {"inputs": [], "outputs": []})
 
-        # Load inputs
-        with open("static/warehouse_log_inputs.csv") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                date = datetime.strptime(row["Date"], "%d/%m/%Y")
-                operations[date]["inputs"].append(row)
-
-        # Load outputs
-        with open("static/warehouse_log_outputs.csv") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                date = datetime.strptime(row["Date"], "%d/%m/%Y")
-                operations[date]["outputs"].append(row)
+        for input_output in ["inputs", "outputs"]:
+            with open(f"static/warehouse_log_{input_output}.csv") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    date = row["Date"]
+                    pallet = Europallet(Category(row["Category"]))
+                    operations[date][input_output].append(pallet)
 
         return dict(operations)
 
     def run_simulation(self):
-        def process_operation(operation_type, entries):
-            for entry in entries:
-                pallet = Europallet(Category(entry["Category"]))
+        def process_operation(operation_type, pallets):
+            for pallet in pallets:
                 if operation_type == "input":
                     success = self.warehouse.place_pallet(pallet)
                 else:
@@ -190,8 +182,8 @@ class WarehouseSimulator:
                 if not success:
                     print(f"Failed to {operation_type} pallet")
 
-        for date, operations in sorted(self.operations_by_date.items()):
-            print(f"Simulating date {date.strftime('%d/%m/%Y')}")
+        for date, operations in self.operations_by_date.items():
+            print(f"Simulating date {date}")
             process_operation("input", operations["inputs"])
             process_operation("output", operations["outputs"])
 
