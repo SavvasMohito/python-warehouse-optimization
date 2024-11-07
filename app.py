@@ -78,9 +78,7 @@ class Warehouse:
         self.racks = [Rack(i) for i in range(2)]
         self.total_operation_time = 0
 
-    def calculate_operation_time(
-        self, bay_position: int, shelf_level: int, pallet_position: int, is_output: bool
-    ) -> float:
+    def calculate_operation_time(self, bay_position: int, shelf_level: int, pallet_position: int, is_output: bool) -> float:
         if is_output:
             bay_distance = (BAYS_PER_RACK - bay_position - 1) * RACK_WIDTH
             rack_distance = (PALLETS_PER_SHELF - pallet_position - 1) * PALLET_WIDTH
@@ -147,9 +145,7 @@ class Warehouse:
             for pallet_pos, pallet in enumerate(shelf.pallets):
                 if pallet and pallet.category == p.category:
                     shelf.pallets[pallet_pos] = None
-                    self.total_operation_time += self.calculate_operation_time(
-                        bay_num, shelf_num, pallet_pos, is_output=True
-                    )
+                    self.total_operation_time += self.calculate_operation_time(bay_num, shelf_num, pallet_pos, True)
                     return True
         return False
 
@@ -162,7 +158,7 @@ class WarehouseSimulator:
     def _load_operations(self):
         operations = defaultdict(lambda: {"inputs": [], "outputs": []})
         # Add pre-existing pallets to satisfy output orders
-        operations["31/8/2023"]["inputs"] = [Europallet(Category.A)]*20 + [Europallet(Category.B)]*20 + [Europallet(Category.C)]*20
+        operations["31/8/2023"]["inputs"] = [Europallet(Category.A)] * 20 + [Europallet(Category.B)] * 20 + [Europallet(Category.C)] * 20
 
         for input_output in ["inputs", "outputs"]:
             with open(f"static/warehouse_log_{input_output}.csv") as f:
