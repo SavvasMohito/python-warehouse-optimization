@@ -45,7 +45,6 @@ class Warehouse_Fill_Ends:
         best_position = None
 
         # For input operations, prefer positions closer to input area (left side)
-        # This helps minimize travel time for future retrieval operations
         for rack_num, bay_num, shelf_num, shelf in self.iter_warehouse_positions():
             if not shelf.can_accept_category(pallet.category) or not shelf.has_space():
                 continue
@@ -62,7 +61,7 @@ class Warehouse_Fill_Ends:
                 best_time = operation_time
                 best_position = (rack_num, bay_num, shelf_num, pallet_pos)
 
-        return best_position, best_time
+        return best_position
 
     def find_closest_available_pallet(self, pallet_request: Europallet) -> Union[None, Tuple[Tuple[int, int, int, int], float]]:
         best_time = float("inf")
@@ -80,8 +79,8 @@ class Warehouse_Fill_Ends:
         return best_position, best_time
 
     def place_pallet(self, pallet: Europallet) -> bool:
-        # Use optimal position finding instead of first available
-        position, time = self.find_optimal_position(pallet)
+        # Place pallet in the optimal position with the lowest operation time
+        position = self.find_optimal_position(pallet)
         if position is None:
             return False
 
@@ -91,11 +90,11 @@ class Warehouse_Fill_Ends:
         if not success:
             return False
 
-        # self.total_operation_time += time
         self.total_operation_time += self.calculate_operation_time(bay_num, shelf_num, pallet_pos, False)
         return True
 
     def retrieve_pallet(self, pallet_request: Europallet) -> bool:
+        # Retrieve the pallet of requested category with the lowest retrieval time
         position, time = self.find_closest_available_pallet(pallet_request)
         if position is None:
             return False

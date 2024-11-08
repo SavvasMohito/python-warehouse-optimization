@@ -23,6 +23,7 @@ class Simulator:
         # Add pre-existing pallets to satisfy output orders
         operations["31/8/2023"]["input"] = [Europallet(Category.A)] * 20 + [Europallet(Category.B)] * 20 + [Europallet(Category.C)] * 20
 
+        # Import data from csv files
         for input_output in ["input", "output"]:
             with open(f"static/warehouse_log_{input_output}s.csv") as f:
                 reader = csv.DictReader(f)
@@ -34,6 +35,7 @@ class Simulator:
         return dict(operations)
 
     def run_simulation(self):
+        # Run the same simulation for all warehouse placement strategies
         for warehouse in self.warehouses:
             for date, operations in self.operations_by_date.items():
                 for input_output in ["input", "output"]:
@@ -44,6 +46,8 @@ class Simulator:
                             success = warehouse.retrieve_pallet(pallet)
                         if not success:
                             print(f"Failed to {input_output} pallet")
+
+            # Save the total operation time for each warehouse
             self.results[warehouse.__class__.__name__] = warehouse.total_operation_time
 
     def print_report(self):

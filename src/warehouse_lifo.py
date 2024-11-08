@@ -40,6 +40,13 @@ class Warehouse_LIFO:
                     shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
                     yield rack_num, bay_num, shelf_num, shelf
 
+    def iter_warehouse_positions_reverse(self):
+        for bay_num in reversed(range(BAYS_PER_RACK)):
+            for rack_num in reversed(range(2)):
+                for shelf_num in reversed(range(SHELVES_PER_BAY)):
+                    shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
+                    yield rack_num, bay_num, shelf_num, shelf
+
     # Finds the first available position for the pallet
     def find_first_available_position(self, pallet: Europallet) -> Union[None, Tuple[int, int, int, int]]:
         for rack_num, bay_num, shelf_num, shelf in self.iter_warehouse_positions():
@@ -64,7 +71,8 @@ class Warehouse_LIFO:
         return True
 
     def retrieve_pallet(self, pallet_request: Europallet) -> bool:
-        for rack_num, bay_num, shelf_num, shelf in self.iter_warehouse_positions():
+        # Find the first pallet that matches the request and remove it
+        for rack_num, bay_num, shelf_num, shelf in self.iter_warehouse_positions_reverse():
             for pallet_pos, pallet in enumerate(shelf.pallets):
                 if pallet and pallet.category == pallet_request.category:
                     shelf.pallets[pallet_pos] = None

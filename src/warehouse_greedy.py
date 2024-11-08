@@ -45,7 +45,6 @@ class Warehouse_Greedy:
         best_position = None
 
         # For input operations, prefer positions closer to input area (left side)
-        # This helps minimize travel time for future retrieval operations
         for rack_num, bay_num, shelf_num, shelf in self.iter_warehouse_positions():
             if not shelf.can_accept_category(pallet.category) or not shelf.has_space():
                 continue
@@ -77,7 +76,7 @@ class Warehouse_Greedy:
         return best_position, best_time
 
     def place_pallet(self, pallet: Europallet) -> bool:
-        # Use optimal position finding instead of first available
+        # Place pallet in the optimal position with the lowest operation time
         position, time = self.find_optimal_position(pallet)
         if position is None:
             return False
@@ -92,6 +91,7 @@ class Warehouse_Greedy:
         return True
 
     def retrieve_pallet(self, pallet_request: Europallet) -> bool:
+        # Retrieve the pallet of requested category with the lowest retrieval time
         position, time = self.find_closest_available_pallet(pallet_request)
         if position is None:
             return False
