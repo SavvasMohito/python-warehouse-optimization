@@ -55,7 +55,7 @@ class Simulator:
             }
 
     def print_report(self):
-        print("\nTotal operation time per placement strategy (sorted best to worst):\n")
+        print("\nTotal operation times per placement strategy (sorted from quickest to slowest):\n")
         for warehouse_name, operation_times in sorted(self.results.items(), key=lambda x: x[1]["total"]):
             print(
                 f"{warehouse_name}:"
