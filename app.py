@@ -48,12 +48,21 @@ class Simulator:
                             print(f"Failed to {input_output} pallet")
 
             # Save the total operation time for each warehouse
-            self.results[warehouse.__class__.__name__] = warehouse.total_operation_time
+            self.results[warehouse.__class__.__name__] = {
+                "input": warehouse.input_operation_time,
+                "output": warehouse.output_operation_time,
+                "total": warehouse.input_operation_time + warehouse.output_operation_time,
+            }
 
     def print_report(self):
         print("\nTotal operation time per placement strategy (sorted best to worst):\n")
-        for warehouse_name, operation_time in sorted(self.results.items(), key=lambda x: x[1]):
-            print(f"{warehouse_name}: \t{operation_time:.2f} seconds")
+        for warehouse_name, operation_times in sorted(self.results.items(), key=lambda x: x[1]["total"]):
+            print(
+                f"{warehouse_name}:"
+                f" \tTotal: {operation_times['total']:.2f} seconds"
+                f" \tInput: {operation_times['input']:.2f} seconds"
+                f" \tOutput: {operation_times['output']:.2f} seconds"
+            )
 
 
 def main():

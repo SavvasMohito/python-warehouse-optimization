@@ -18,7 +18,8 @@ from src.constants import (
 class Warehouse_FIFO:
     def __init__(self):
         self.racks = [Rack(i) for i in range(2)]
-        self.total_operation_time = 0
+        self.input_operation_time = 0
+        self.output_operation_time = 0
 
     def calculate_operation_time(self, bay_position: int, shelf_level: int, pallet_position: int, is_output: bool) -> float:
         if is_output:
@@ -66,7 +67,7 @@ class Warehouse_FIFO:
             return False
 
         # Add operation time
-        self.total_operation_time += self.calculate_operation_time(bay_num, shelf_num, pallet_pos, False)
+        self.input_operation_time += self.calculate_operation_time(bay_num, shelf_num, pallet_pos, False)
         return True
 
     def retrieve_pallet(self, pallet_request: Europallet) -> bool:
@@ -79,5 +80,5 @@ class Warehouse_FIFO:
         shelf.pallets[pallet_pos] = None
 
         # Add operation time
-        self.total_operation_time += self.calculate_operation_time(bay_num, shelf_num, pallet_pos, True)
+        self.output_operation_time += self.calculate_operation_time(bay_num, shelf_num, pallet_pos, True)
         return True
