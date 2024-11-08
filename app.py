@@ -59,9 +59,9 @@ class Simulator:
         for warehouse_name, operation_times in sorted(self.results.items(), key=lambda x: x[1]["total"]):
             print(
                 f"{warehouse_name}:"
-                f" \tTotal: {operation_times['total']:.2f} seconds"
                 f" \tInput: {operation_times['input']:.2f} seconds"
                 f" \tOutput: {operation_times['output']:.2f} seconds"
+                f" \tTotal: {operation_times['total']:.2f} seconds"
             )
 
 
