@@ -1,6 +1,17 @@
 ## Python Technical Exercise: Single Picker Routing Problem
 
-# 1. Introduction
+# Running the code
+
+0. Have Python installed
+1. Clone the github repo on your machine
+2. Navigate to the root folder of the repo
+3. Run `pyhton app.py`
+
+**Note**: The code was developed and tested using Python 3.10.12 on Ubuntu 22.04
+
+# Exercise Definition
+
+## 1. Introduction
 
 **Objective**: Develop a Python script that optimizes the positioning of goods in a
 warehouse based on category-specific placement rules and historical activity logs,
@@ -33,7 +44,7 @@ the first to be positioned and then the retrieval process starts.
 - v<sub>lift</sub> = 0.5 m/s 
 
 
-# 2. To-do
+## 2. To-do
 
 **Part 1: Data Import and Entity Definition**
 
@@ -66,7 +77,7 @@ the first to be positioned and then the retrieval process starts.
 - **Generate Reports:** Provide detailed reports and visualizations comparing
     efficiency improvements between initial and optimized simulations.
 
-# 3. Deliverables & Evaluation
+## 3. Deliverables & Evaluation
 
 **Deliverables:**
 
