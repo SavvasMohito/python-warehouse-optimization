@@ -1,3 +1,4 @@
+import time
 from typing import Tuple, Union
 
 from src.classes import Europallet, Rack
@@ -33,13 +34,6 @@ class Warehouse_FIFO:
 
         return horizontal_time + vertical_time
 
-    def iter_warehouse_positions(self):
-        for bay_num in range(BAYS_PER_RACK):
-            for rack_num in range(2):
-                for shelf_num in range(SHELVES_PER_BAY):
-                    shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
-                    yield rack_num, bay_num, shelf_num, shelf
-
     def iter_warehouse_positions_reverse(self):
         for bay_num in reversed(range(BAYS_PER_RACK)):
             for rack_num in reversed(range(2)):
@@ -48,35 +42,25 @@ class Warehouse_FIFO:
                     yield rack_num, bay_num, shelf_num, shelf
 
     # Finds the first available position for the pallet
-    def find_closest_position_to_the_end(self, pallet: Europallet) -> Union[None, Tuple[int, int, int, int]]:
+    def find_closest_position_to_the_end(self, pallet: Europallet, is_input: bool) -> Union[None, Tuple[int, int, int, int]]:
         for rack_num, bay_num, shelf_num, shelf in self.iter_warehouse_positions_reverse():
-            if shelf.can_accept_category(pallet.category) and shelf.has_space():
-                return (rack_num, bay_num, shelf_num, shelf.pallets.index(None))
+            if is_input:
+                if shelf.can_accept_category(pallet.category) and shelf.has_space():
+                    return (rack_num, bay_num, shelf_num, shelf.pallets.index(None))
+            else:
+                if pallet in shelf.pallets:
+                    pallet_pos = len(shelf.pallets) - 1 - shelf.pallets[::-1].index(pallet)
+                    return (rack_num, bay_num, shelf_num, pallet_pos)
         return None
 
-    def find_closest_available_pallet(self, pallet_request: Europallet) -> Union[None, Tuple[Tuple[int, int, int, int], float]]:
-        best_time = float("inf")
-        best_position = None
-
-        # Find the pallet position that minimizes retrieval time
-        for rack_num, bay_num, shelf_num, shelf in self.iter_warehouse_positions():
-            for pallet_pos, pallet in enumerate(shelf.pallets):
-                if pallet and pallet.category == pallet_request.category:
-                    operation_time = self.calculate_operation_time(bay_num, shelf_num, pallet_pos, True)
-                    if operation_time < best_time:
-                        best_time = operation_time
-                        best_position = (rack_num, bay_num, shelf_num, pallet_pos)
-
-        return best_position, best_time
-
     def place_pallet(self, pallet: Europallet) -> bool:
-        position = self.find_closest_position_to_the_end(pallet)
+        position = self.find_closest_position_to_the_end(pallet, True)
         if position is None:
             return False
 
         rack_num, bay_num, shelf_num, pallet_pos = position
-
         shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
+
         success = shelf.add_pallet(pallet)
         if not success:
             return False
@@ -86,7 +70,7 @@ class Warehouse_FIFO:
         return True
 
     def retrieve_pallet(self, pallet_request: Europallet) -> bool:
-        position, time = self.find_closest_available_pallet(pallet_request)
+        position = self.find_closest_position_to_the_end(pallet_request, False)
         if position is None:
             return False
 
@@ -94,5 +78,6 @@ class Warehouse_FIFO:
         shelf = self.racks[rack_num].bays[bay_num].shelves[shelf_num]
         shelf.pallets[pallet_pos] = None
 
-        self.total_operation_time += time
+        # Add operation time
+        self.total_operation_time += self.calculate_operation_time(bay_num, shelf_num, pallet_pos, True)
         return True
