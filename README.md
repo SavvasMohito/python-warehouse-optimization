@@ -77,19 +77,37 @@ the first to be positioned and then the retrieval process starts.
 - **Generate Reports:** Provide detailed reports and visualizations comparing
     efficiency improvements between initial and optimized simulations.
 
-## 3. Deliverables & Evaluation
+# Results
 
-**Deliverables:**
+Five different approaches were tested for optimising the placement of pallets in the warehouse layout provided by the exercise description. Before going through the results, some general assumptions should be listed. These apply to all strategies, thus not affecting the final results:
 
-- Python source code.
-- README with setup and execution instructions.
-- Visualizations and comparative efficiency reports.
+1. There is only one employee at the warehouse
+2. There are two forklifts, one used for inputs and the other one used for outputs
+3. Each forklift’s parking spot is within the drop-off and pick-up area
+4. The employee changes forklifts after finishing the placement of input pallets
+5. The forklift can carry only one pallet at a time
+6. 20 pallets of each category existed in the warehouse beforehand
+7. All of the presented approaches adhere to the category-specific placement rules
 
-**Evaluation Criteria:**
+**FIFO**: In this approach, pallets are placed in the first available position that is closer to the pick-up area. The aim of this is to minimise the operation time of the retrieval process but as a result the initial placement time increases. This approach is the worst out of the five with the highest total time of 30026.47 seconds (~ 8.34 hours), even though it has a low output time (but not the lowest).
 
-- Effectiveness of the optimization strategy.
-- Accuracy and realism in simulating warehouse operations.
-- Code quality and clarity.
-- Insightfulness of the final report.
+**LIFO**: This approach is similar to FIFO, but it prioritises minimizing operation times during the initial retrieval, filling the bays from 1 to 10. Similarly to FIFO, this approach is also not very good. The initial placement time is low but the output times increase dramatically, resulting in a high overall time of 27176.67 seconds (~ 7.54 hours) which is better than FIFO but still not optimal.
 
+**Fill Middle**: This approach prioritises the middle bays compared to the edge ones, meaning that bays 5 and 6 will be filled first, then 4 and 7 and so on. The aim of this is to normalise the times between input and output operations. The result is slightly better than the LIFO approach, reaching a total of 27044.47 seconds (~7.51 hours).
 
+**Fill Ends**: The opposite of the previous approach is to fill the two ends of the racks first, leaving the middle bays as a last resort. The aim of this approach is again to distribute the pallets between the two ends and improve both input and output times. The result is indeed better, with a total time of 25785.73 seconds (~ 7.16 hours) and the lowest output time out of all five approaches.
+
+**Greedy**: This approach follows a Greedy Heuristic algorithm to find the optimal positions to place and retrieve pallets. All of the possible candidates are taken into consideration and their operation times are calculated beforehand. In the end, the candidate with the lowest operation time is the one selected for the input/output action. This algorithm achieved the best results out of the five approaches, with a total of 25386.13 seconds (~7.05 hours) and one of the lowest input times. Comparing it to the first FIFO approach, we can see a 15.46% improvement, translating to 4640.34 fewer seconds equivalent to 1.29 hours. Comparing it to the LIFO approach, we can see a 6.59% improvement, translating to 1790.54 seconds equivalent to 0.49 hours.
+
+| Strategy   | Input time (s) | Output time (s) | Total time (s) |
+|------------|----------------|-----------------|----------------|
+| Greedy     | 10781.53       | 14604.6         | 25386.13       |
+| Fill Ends  | 19692.6        | 6093.13         | 25785.73       |
+| Fill Middle| 17413.73       | 9630.73         | 27044.46       |
+| LIFO       | 11148.07       | 16028.6         | 27176.67       |
+| FIFO       | 23233.67       | 6792.8          | 30026.47       |
+
+Table 1: Comparison of placement strategies, listed from best to worst (lowest time = better)
+
+![Bar chart of the results](static/img/results_bar_chart.png)
+Figure 1: Comparison of placement strategies, displayed from best to worst (lowest time = better)
